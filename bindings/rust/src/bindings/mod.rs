@@ -148,10 +148,18 @@ impl KZGSettings {
             .ok_or_else(|| Error::InvalidTrustedSetup("Unsupported non unicode file path".into()))?
             .as_bytes();
 
-        let file_path = CString::new(file_path_bytes)
-            .map_err(|e| Error::InvalidTrustedSetup(format!("Invalid trusted setup file: {e}")))?;
-
-        Self::load_trusted_setup_file_inner(&file_path)
+        #[cfg(any(unix, windows))]
+        {
+            let file_path = CString::new(file_path_bytes)
+                .map_err(|e| Error::InvalidTrustedSetup(format!("Invalid trusted setup file: {e}")))?;
+            Self::load_trusted_setup_file_inner(&file_path)
+        }
+        #[cfg(not(any(unix, windows)))]
+        {
+            Err(Error::InvalidTrustedSetup(
+                "Unsupported platform for file path conversion".into(),
+            ))
+        }
     }
 
     /// Loads the trusted setup parameters from a file. The file format is as follows:
@@ -162,13 +170,23 @@ impl KZGSettings {
     /// 65 g2 byte values
     #[cfg(not(feature = "std"))]
     pub fn load_trusted_setup_file(file_path: &CStr) -> Result<Self, Error> {
-        Self::load_trusted_setup_file_inner(file_path)
+        #[cfg(any(windows, unix))]
+        {
+            Self::load_trusted_setup_file_inner(file_path)
+        }
+        #[cfg(not(any(windows, unix)))]
+        {
+            Err(Error::InvalidTrustedSetup(
+                "Unsupported platform for file path conversion".into(),
+            ))
+        }
     }
 
     /// Loads the trusted setup parameters from a file.
     ///
     /// Same as [`load_trusted_setup_file`](Self::load_trusted_setup_file)
     #[cfg_attr(not(feature = "std"), doc = ", but takes a `CStr` instead of a `Path`")]
+    #[cfg(any(windows, unix))]
     /// .
     pub fn load_trusted_setup_file_inner(file_path: &CStr) -> Result<Self, Error> {
         // SAFETY: `b"r\0"` is a valid null-terminated string.
