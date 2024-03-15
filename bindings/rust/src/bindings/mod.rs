@@ -127,6 +127,53 @@ impl KZGSettings {
         }
     }
 
+    pub fn to_bytes(&self) -> Vec<u8> {
+        let size_max_length = core::mem::size_of::<u64>();
+        let size_roots_of_unity = core::mem::size_of::<fr_t>() * self.max_width as usize;
+        let size_g1_values = core::mem::size_of::<g1_t>() * FIELD_ELEMENTS_PER_BLOB;
+        let size_g2_values = core::mem::size_of::<g2_t>() * 65; // Magic: '#define TRUSTED_SETUP_NUM_G2_POINTS 65'
+
+        let length = size_max_length + size_roots_of_unity + size_g1_values + size_g2_values;
+        let mut data: Vec<u8> = Vec::new();
+        data.resize(length, 0);
+        let mut pos = 0;
+
+        data[..size_max_length].copy_from_slice(&self.max_width.to_be_bytes());
+        pos += size_max_length;
+
+        data[pos..pos + size_roots_of_unity].copy_from_slice(unsafe {
+            core::slice::from_raw_parts(self.roots_of_unity as *const u8, size_roots_of_unity)
+        });
+        pos += size_roots_of_unity;
+
+        data[pos..pos + size_g1_values].copy_from_slice(unsafe {
+            core::slice::from_raw_parts(self.g1_values as *const u8, size_g1_values)
+        });
+        pos += size_g1_values;
+
+        data[pos..pos + size_g2_values].copy_from_slice(unsafe {
+            core::slice::from_raw_parts(self.g2_values as *const u8, size_g2_values)
+        });
+
+        data
+    }
+
+    pub fn from_u8_slice(data: &mut [u8]) -> Self {
+        let size_max_length = core::mem::size_of::<u64>();
+        let max_width: u64 = u64::from_be_bytes(data[0..size_max_length].try_into().unwrap());
+
+        let size_roots_of_unity = core::mem::size_of::<fr_t>() * max_width as usize;
+        let size_g1_values = core::mem::size_of::<g1_t>() * FIELD_ELEMENTS_PER_BLOB;
+
+        Self {
+            max_width,
+            roots_of_unity: data[size_max_length..].as_mut_ptr() as *mut fr_t,
+            g1_values: data[size_max_length + size_roots_of_unity..].as_mut_ptr() as *mut blst_p1,
+            g2_values: data[size_max_length + size_roots_of_unity + size_g1_values..].as_mut_ptr()
+                as *mut blst_p2,
+        }
+    }
+
     /// Loads the trusted setup parameters from a file. The file format is as follows:
     ///
     /// FIELD_ELEMENTS_PER_BLOB
