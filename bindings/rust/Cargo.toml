@@ -12,6 +12,8 @@ default = ["std", "portable"]
 std = ["hex/std", "libc/std", "serde?/std"]
 serde = ["dep:serde"]
 generate-bindings = ["dep:bindgen"]
+# preload kzgsetting bytes instead of init from file, difference is mem management
+preload-kzg-settings = []
 
 # This is a standalone feature so that crates that disable default features can
 # enable blst/portable without having to add it as a dependency
