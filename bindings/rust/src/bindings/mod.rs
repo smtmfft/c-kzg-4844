@@ -158,6 +158,7 @@ impl KZGSettings {
         data
     }
 
+    #[cfg(feature = "preload-kzg-settings")]
     pub fn from_u8_slice(data: &mut [u8]) -> Self {
         let size_max_length = core::mem::size_of::<u64>();
         let max_width: u64 = u64::from_be_bytes(data[0..size_max_length].try_into().unwrap());
@@ -236,6 +237,11 @@ impl KZGSettings {
     #[cfg(any(windows, unix))]
     /// .
     pub fn load_trusted_setup_file_inner(file_path: &CStr) -> Result<Self, Error> {
+        #[cfg(feature = "preload-kzg-settings")]
+        return Err(Error::InvalidTrustedSetup(
+            "Preloading kzg setting is enabled in std mode".into(),
+        ));
+
         // SAFETY: `b"r\0"` is a valid null-terminated string.
         const MODE: &CStr = unsafe { CStr::from_bytes_with_nul_unchecked(b"r\0") };
 
@@ -273,6 +279,8 @@ impl KZGSettings {
     }
 }
 
+#[cfg(feature = "std")]
+#[cfg(not(feature = "preload-kzg-settings"))]
 impl Drop for KZGSettings {
     fn drop(&mut self) {
         unsafe { free_trusted_setup(self) }
