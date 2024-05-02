@@ -77,7 +77,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a3e2c3daef883ecc1b5d58c15adae93470a91d425f3532ba1695849656af3fc1"
 
 [[package]]
-name = "c-kzg"
+name = "c-kzg-taiko"
 version = "1.0.0"
 dependencies = [
  "bindgen",
