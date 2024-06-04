@@ -23,7 +23,7 @@ def main():
     chdir(setup_dir)
 
     setup(
-        name="ckzg-taiko",
+        name="ckzg",
         version="1.0.1",
         author="Ethereum Foundation",
         author_email="security@ethereum.org",
@@ -34,7 +34,7 @@ def main():
         license="Apache-2.0",
         ext_modules=[
             Extension(
-                "ckzg-taiko",
+                "ckzg",
                 sources=["bindings/python/ckzg.c", "src/c_kzg_4844.c"],
                 include_dirs=["inc", "src"],
                 library_dirs=["lib"],

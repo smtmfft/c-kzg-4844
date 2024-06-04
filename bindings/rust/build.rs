@@ -26,7 +26,7 @@ fn main() {
     cc.warnings(false);
     cc.file(c_src_dir.join("c_kzg_4844.c"));
 
-    cc.try_compile("ckzg").expect("Failed to compile ckzg");
+    cc.try_compile("ckzg-taiko").expect("Failed to compile ckzg");
 
     #[cfg(feature = "generate-bindings")]
     {
@@ -43,7 +43,7 @@ fn main() {
     }
 
     // Finally, tell cargo this provides ckzg/ckzg_min
-    println!("cargo:rustc-link-lib=ckzg");
+    println!("cargo:rustc-link-lib=ckzg-taiko");
 }
 
 #[cfg(feature = "generate-bindings")]
