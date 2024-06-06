@@ -22,11 +22,18 @@ fn main() {
         cc.flag("/std:c11");
     }
 
+    #[cfg(target_os = "zkvm")]
+    {
+        // for sp1's alignment
+        cc.flag("-mstrict-align");
+        cc.flag("-falign-functions=2");
+    }
     cc.include(blst_headers_dir.clone());
     cc.warnings(false);
     cc.file(c_src_dir.join("c_kzg_4844.c"));
 
-    cc.try_compile("ckzg-taiko").expect("Failed to compile ckzg");
+    cc.try_compile("ckzg-taiko")
+        .expect("Failed to compile ckzg");
 
     #[cfg(feature = "generate-bindings")]
     {
